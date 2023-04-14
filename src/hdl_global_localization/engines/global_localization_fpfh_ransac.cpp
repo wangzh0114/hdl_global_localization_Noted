@@ -43,7 +43,7 @@ void GlobalLocalizationEngineFPFH_RANSAC::set_global_map(pcl::PointCloud<pcl::Po
   ransac->set_target(global_map, global_map_features);
 }
 
-GlobalLocalizationResults GlobalLocalizationEngineFPFH_RANSAC::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates) {
+GlobalLocalizationResults GlobalLocalizationEngineFPFH_RANSAC::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates, float lat, float lon) {
   pcl::PointCloud<pcl::FPFHSignature33>::ConstPtr cloud_features = extract_fpfh(cloud);
 
   ransac->set_source(cloud, cloud_features);

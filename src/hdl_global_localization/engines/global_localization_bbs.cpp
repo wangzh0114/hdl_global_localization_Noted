@@ -25,6 +25,8 @@ void GlobalLocalizationBBS::set_global_map(pcl::PointCloud<pcl::PointXYZ>::Const
   params.max_ty = private_nh.param<double>("bbs/max_ty", 10.0);
   params.min_theta = private_nh.param<double>("bbs/min_theta", -3.15);
   params.max_theta = private_nh.param<double>("bbs/max_theta", 3.15);
+  params.origin_lat = private_nh.param<double>("bbs/origin_lat", 0.0);
+  params.origin_lon = private_nh.param<double>("bbs/origin_lon", 0.0);
   bbs.reset(new BBSLocalization(params));
 
   double map_min_z = private_nh.param<double>("bbs/map_min_z", 2.0);
@@ -50,13 +52,16 @@ void GlobalLocalizationBBS::set_global_map(pcl::PointCloud<pcl::PointXYZ>::Const
   gridmap_pub.publish(bbs->gridmap()->to_rosmsg());
 }
 
-GlobalLocalizationResults GlobalLocalizationBBS::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates) {
+GlobalLocalizationResults GlobalLocalizationBBS::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates, float lat, float lon) {
   double scan_min_z = private_nh.param<double>("bbs/scan_min_z", -0.2);
   double scan_max_z = private_nh.param<double>("bbs/scan_max_z", 0.2);
   auto scan_2d = slice(*cloud, scan_min_z, scan_max_z);
+  bbs->lat = lat;
+  bbs->lon = lon;
 
   std::vector<GlobalLocalizationResult::Ptr> results;
 
+  clock_t start = clock();
   ROS_INFO_STREAM("Query " << scan_2d.size() << " points");
   if (scan_2d.size() < 32) {
     ROS_WARN_STREAM("Num points in the sliced scan is too small!!");
@@ -83,6 +88,8 @@ GlobalLocalizationResults GlobalLocalizationBBS::query(pcl::PointCloud<pcl::Poin
   results.resize(1);
   results[0].reset(new GlobalLocalizationResult(best_score, best_score, trans_3d));
 
+  clock_t end = clock();
+  ROS_WARN("global relocalization use time = %f  ms\n\n", double(end-start)/CLOCKS_PER_SEC*1000);
   return GlobalLocalizationResults(results);
 }
 

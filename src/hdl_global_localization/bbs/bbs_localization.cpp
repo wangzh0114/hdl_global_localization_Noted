@@ -136,16 +136,35 @@ std::priority_queue<DiscreteTransformation> BBSLocalization::create_init_transse
   std::pair<int, int> tx_range(std::floor(params.min_tx / trans_res), std::ceil(params.max_tx / trans_res));
   std::pair<int, int> ty_range(std::floor(params.min_ty / trans_res), std::ceil(params.max_ty / trans_res));
   std::pair<int, int> theta_range(std::floor(params.min_theta / theta_resolution), std::ceil(params.max_theta / theta_resolution));
+  // TODO(wzh): covert lla to xyz
+  double dis = calc_distance(params.origin_lat, params.origin_lon, lat, lon);
+  double angle = calc_angle(params.origin_lat, params.origin_lon, lat, lon);
+  double offset_x = dis * cos(angle);
+  double offset_y = dis * sin(angle);
 
+  int o_x = std::floor(offset_x / trans_res);
+  int o_y = std::floor(offset_y / trans_res);
+
+  ROS_INFO_STREAM("BBS lat is: " << lat);
+  ROS_INFO_STREAM("BBS lon is: " << lon);
+  ROS_INFO_STREAM("BBS origin_lat is: " << params.origin_lat);
+  ROS_INFO_STREAM("BBS origin_lon is: " << params.origin_lon);
+  ROS_INFO_STREAM("BBS dis is: " << dis);
+  ROS_INFO_STREAM("BBS angle is: " << angle);
+  ROS_INFO_STREAM("BBS offset_x is: " << offset_x);
+  ROS_INFO_STREAM("BBS offset_y is: " << offset_y);
+  ROS_INFO_STREAM("BBS o_x is: " << o_x);
+  ROS_INFO_STREAM("BBS o_y is: " << o_y);
   ROS_INFO_STREAM("Resolution trans:" << trans_res << " theta:" << theta_resolution);
   ROS_INFO_STREAM("TransX range:" << tx_range.first << " " << tx_range.second);
   ROS_INFO_STREAM("TransY range:" << ty_range.first << " " << ty_range.second);
   ROS_INFO_STREAM("Theta  range:" << theta_range.first << " " << theta_range.second);
 
   std::vector<DiscreteTransformation> transset;
+  // 括号内的数字为vector的大小
   transset.reserve((tx_range.second - tx_range.first) * (ty_range.second - ty_range.first) * (theta_range.second - theta_range.first));
-  for (int tx = tx_range.first; tx <= tx_range.second; tx++) {
-    for (int ty = ty_range.first; ty <= ty_range.second; ty++) {
+  for (int tx = o_x + tx_range.first; tx <= o_x + tx_range.second; tx++) {
+    for (int ty = o_y + ty_range.first; ty <= o_y + ty_range.second; ty++) {
       for (int theta = theta_range.first; theta <= theta_range.second; theta++) {
         int level = gridmap_pyramid.size() - 1;
         transset.emplace_back(DiscreteTransformation(level, tx, ty, theta));
@@ -164,5 +183,39 @@ std::priority_queue<DiscreteTransformation> BBSLocalization::create_init_transse
 
   return std::priority_queue<DiscreteTransformation>(transset.begin(), transset.end());
 }
+//计算距离
+double BBSLocalization::calc_distance(const double& lat1, const double& lon1, const double& lat2, const double& lon2) const{
+  double rad_lat1 = to_radius(lat1);
+  double rad_lat2 = to_radius(lat2);
+  double a = rad_lat2 - rad_lat1;
+  double b = to_radius(lon2) - to_radius(lon1);
+
+  double s = 2 * asin(sqrt(pow(sin(a/2),2) + cos(rad_lat1) * cos(rad_lat2) * pow(sin(b/2),2)));
+  s = s * Earth_Radius;
+  s = s * 1000;
+  
+  return s;
+}
+//计算角度
+double BBSLocalization::calc_angle(const double& lat1, const double& lon1, const double& lat2, const double& lon2) const{
+	double x = lat2 - lat1;//t d
+	double y = lon2 - lon1;//z y
+  // ROS_INFO_STREAM("calc_angle: x " << x);
+  // ROS_INFO_STREAM("calc_angle: y " << y);
+	double angle = -1.;
+	if (y == 0 && x > 0) angle = 0;
+	if (y == 0 && x < 0) angle = 180 * kDegreeToRadian;
+	if(x ==0 && y > 0) angle = 90 * kDegreeToRadian;
+	if(x == 0 && y < 0) angle = 270 * kDegreeToRadian;
+	if (angle == -1)
+	{
+		double dislat = calc_distance(lat1, lon2, lat2, lon2);
+		double dislon = calc_distance(lat2, lon1, lat2, lon2);
+    angle = atan2(dislon, dislat) ;
+	}
+	return angle;
+}
+//角度转弧度
+double BBSLocalization::to_radius(const double& lla) const{return lla * kDegreeToRadian;}
 
 }  // namespace  hdl_global_localization

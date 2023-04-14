@@ -21,7 +21,7 @@ void GlobalLocalizationEngineFPFH_Teaser::set_global_map(pcl::PointCloud<pcl::Po
   evaluater->set_target(this->global_map, private_nh.param<double>("ransac/max_correspondence_distance", 1.0));
 }
 
-GlobalLocalizationResults GlobalLocalizationEngineFPFH_Teaser::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates) {
+GlobalLocalizationResults GlobalLocalizationEngineFPFH_Teaser::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates, float lat, float lon) {
   auto cloud_features = extract_fpfh(cloud);
 
   teaser::PointCloud target_cloud, source_cloud;

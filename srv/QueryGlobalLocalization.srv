@@ -1,5 +1,8 @@
 int64 max_num_candidates
 sensor_msgs/PointCloud2 cloud
+
+float64 lat
+float64 lon
 ---
 std_msgs/Header header
 std_msgs/Header globalmap_header

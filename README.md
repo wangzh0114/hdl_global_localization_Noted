@@ -1,7 +1,3 @@
-# hdl_global_localization_Noted
----
-> [hdl_global_localization](https://github.com/koide3/hdl_global_localization)
----
 # hdl_global_localization
 
 ![hdl_global_localization](https://user-images.githubusercontent.com/31344317/105116113-71fc6180-5b0d-11eb-9d85-bbea922dde84.gif)

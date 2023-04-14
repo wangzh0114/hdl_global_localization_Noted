@@ -16,6 +16,9 @@
 
 namespace hdl_global_localization {
 
+constexpr double kDegreeToRadian = M_PI / 180.;
+const double Earth_Radius = 6378.137;
+
 class OccupancyGridMap;
 
 struct DiscreteTransformation {
@@ -53,6 +56,8 @@ struct BBSParams {
     max_tx = max_ty = 10.0;
     min_theta = -M_PI;
     max_theta = M_PI;
+    origin_lat = 0.0;
+    origin_lon = 0.0;
   }
 
   double max_range;
@@ -62,6 +67,8 @@ struct BBSParams {
   double max_ty;
   double min_theta;
   double max_theta;
+  double origin_lat;
+  double origin_lon;
 };
 
 class BBSLocalization {
@@ -77,8 +84,16 @@ public:
 
   std::shared_ptr<const OccupancyGridMap> gridmap() const;
 
+  double lat;
+  double lon;
+
 private:
   std::priority_queue<DiscreteTransformation> create_init_transset(const Points& scan_points) const;
+
+  double calc_distance(const double& lat1, const double& lon1, const double& lat2, const double& lon2) const;
+
+  double to_radius(const double& lla) const;
+  double calc_angle(const double& lat1, const double& lon1, const double& lat2, const double& lon2) const;
 
 private:
   BBSParams params;

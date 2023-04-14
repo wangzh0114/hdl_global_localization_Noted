@@ -17,7 +17,7 @@ public:
   virtual ~GlobalLocalizationEngineFPFH_Teaser() override;
 
   virtual void set_global_map(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud) override;
-  virtual GlobalLocalizationResults query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates) override;
+  virtual GlobalLocalizationResults query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates, float lat, float lon) override;
 
 private:
   using GlobalLocalizationEngineFPFH_RANSAC::private_nh;
